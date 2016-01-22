@@ -4,68 +4,34 @@
 // Wile one could think of using interval trees, that solution is overkill
 // if we just want an epsilon band around each number.
 
-// Worried about efficiency? Go the BST route.
+/*jslint white*/
+/*property
+    abs, forEach, push, reps, val
+*/
 
-function addToBst(x, bst, epsilon) {
-	if (bst.length === 0) {
-		return {num: x, rep: 1, left: bst, right: bst};
-	}
-	if (Math.abs(bst.num - x) < (epsilon * bst.rep)) {
-		bst.rep++;
-		return bst;
-	} else if (x > bst.num) {
-		return {num: bst.num, rep: bst.rep,
-			left: bst.left, right:addToBst(x, bst.right, epsilon)};
-	} else {
-		return {num: bst.num, rep: bst.rep,
-			left: addToBst(x, bst.left, epsilon), right: bst.right};
+function addToClusters(x, clusters, epsilon) {
+	"use strict";
+	var found = false;
+	clusters.forEach(
+		function (cluster) {
+			if (!found && Math.abs(x - cluster.val) < (cluster.reps * epsilon)) {
+				cluster.reps = cluster.reps + 1;
+				found = true;
+			}
+		}
+	);
+	if (!found) {
+		clusters.push({val:x, reps:1});
 	}
 }
 
-function addBst(xs, epsilon) {
-	var bst = [];
-	for (i=0; i<xs.length; i++) {
-		bst = addToBst(xs[i], bst, epsilon);
-	}
-	return bst;
-}
-
-function flattenBst(bst) {
-	if (bst.length === 0) {
-		return [];
-	}
-	return flattenBst(bst.left).
-		concat([bst]).
-		concat(flattenBst(bst.right));
-}
-
-
-// If we're not worried about efficiency
-
-function addInterval(x, xs, epsilon) {
-	if (xs.length ===0) {
-		xs = {val:x, reps:1, next:xs};
-	} else if (Math.abs(x - xs.val) < (xs.reps * epsilon)) {
-		xs.reps++;
-	} else {
-		xs.next = addInterval(x, xs.next, epsilon);
-	}
-	return xs;
-}
-
-function addIntervals(xs, epsilon) {
-	var bst = [];
-	for (i=0; i<xs.length; i++) {
-		bst = addInterval(xs[i], bst, epsilon);
-	}
-	return bst;
-}
-
-function printIntervals(xs) {
-	if (xs.length === 0) {
-		;
-	} else {
-		console.log(xs.val + "--" + xs.reps);
-		printIntervals(xs.next);
-	}
+function buildClusters(nums, epsilon) {
+	"use strict";
+	var clusters = [];
+	nums.forEach(
+		function (num) {
+			addToClusters(num, clusters, epsilon);
+		}
+	);
+	return clusters;
 }
